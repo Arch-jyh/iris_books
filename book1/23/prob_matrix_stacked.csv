@@ -1,0 +1,16 @@
+,Category,species,Ratio
+0,A,setosa,0.08
+1,A,versicolor,0.1
+2,A,virginica,0.02
+3,B,setosa,0.06666666666666667
+4,B,versicolor,0.08666666666666667
+5,B,virginica,0.04666666666666667
+6,C,setosa,0.08
+7,C,versicolor,0.06
+8,C,virginica,0.06666666666666667
+9,D,setosa,0.06
+10,D,versicolor,0.06666666666666667
+11,D,virginica,0.06666666666666667
+12,E,setosa,0.04666666666666667
+13,E,versicolor,0.02
+14,E,virginica,0.13333333333333333
