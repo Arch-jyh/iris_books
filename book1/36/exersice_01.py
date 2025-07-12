@@ -22,15 +22,13 @@ p['grid.color'] = '0.5'
 #网格宽度
 p['grid.linewidth'] = 0.5
 
-
-
-
-
-
-
-
-
-
+def uni_normal_pdf(x,mu,sigma):
+    
+    coeff = 1/np.sqrt(2*np.pi)/sigma
+    z = (x - mu)/sigma
+    f_x = coeff*np.exp(-1/2*z**2)
+    
+    return f_x
 
 
 
