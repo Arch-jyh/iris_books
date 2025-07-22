@@ -17,10 +17,32 @@ p["grid.linewidth"] = 0.5
 with st.sidebar:
     st.title('Support Vector Machine')
     st.write('Gaussian kernal')
-    gamma = st.slider('Gamma',
-                      min_value = 0.001,
-                      max_value = 5.0,
-                      value = 1.0,step = 0.05)
+    
+    choose = st.radio('Choose one:',['linear','poly','rbf','sigmoid'])
+    if choose == 'linear':
+        #传入的gamma会忽略
+        gamma = 1
+    elif choose == 'poly': 
+        gamma = st.slider('Gamma',
+                          min_value = 0.001,
+                          max_value = 5.0,
+                          value = 1.0,step = 0.05)
+        
+        degree = st.slider('degree',
+                          min_value = 1,
+                          max_value = 10,
+                          value = 3,step = 1)
+    elif choose == 'sigmoid':
+        gamma = st.slider('Gamma',
+                          min_value = 0.001,
+                          max_value = 0.1,
+                          value = 0.05,step = 0.001)
+    else:
+        gamma = st.slider('Gamma',
+                          min_value = 0.001,
+                          max_value = 5.0,
+                          value = 1.0,step = 0.05)
+            
     
 #导入并整理数据
 iris = datasets.load_iris()
@@ -44,7 +66,10 @@ cmap_bold = np.array(cmap_bold)/255.
 q = np.c_[xx1.ravel(),xx2.ravel()]
 from sklearn import svm
 #创建支持向量机高斯核分类器对象
-SVM = svm.SVC(kernel = 'rbf',gamma = gamma)
+if choose == 'poly':
+    SVM = svm.SVC(kernel = choose,gamma = gamma,degree=degree)
+else:
+    SVM = svm.SVC(kernel = choose,gamma = gamma)
 SVM.fit(X,y)
 #对系列查询点预测
 y_predict = SVM.predict(q)
@@ -69,6 +94,7 @@ plt.ylabel(iris.feature_names[1])
 ax.grid(linestyle = '--',linewidth = 0.25,
         color = [0.5,0.5,0.5])
 ax.set_aspect('equal',adjustable = 'box')
+ax.set_title(choose)
 st.pyplot(fig)
 
 
