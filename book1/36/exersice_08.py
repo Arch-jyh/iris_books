@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
-p = plt.rcParms
+p = plt.rcParams
 p['font.sans-serif'] = ['Roboto']
 p['font.weight'] = 'light'
 p['ytick.minor.visible'] = True
-p['xtick.miner.visible'] = True
+p['xtick.minor.visible'] = True
 p['axes.grid'] = True
 p['grid.color'] = '0.5'
 p['grid.linewidth'] = 0.5
@@ -24,13 +24,120 @@ def make_ellipses(gmm,ax):
         elif gmm.covariance_type == 'tied':
             covariances = gmm.covariances_
         elif gmm.covariance_type == 'diag':
-            covariances = np.diage(gmm.covariances_[j])
+            covariances = np.diag(gmm.covariances_[j])
         elif gmm.covariance_type == 'spherical':
             covariances = np.eye(gmm.means_.shape[1])
             covariances = covariances*gmm.covariances_[j]
+            
+        #用奇异值分解完成特征值分解
+        U,S,V_T = np.linalg.svd(covariances)
+        #计算长短轴
+        major,minor = 2*np.sqrt(S)
+        
+        #计算椭圆长轴旋转角度
+        angle = np.arctan2(U[1,0],U[0,0])
+        angle = 180*angle/np.pi
+        
+        #多元高斯分布中心
+        ax.plot(gmm.means_[j,0],gmm.means_[j,1],
+                color = 'k',marker = 'x',markersize = 10)
+        
+        #绘制半长轴向量
+        ax.quiver(gmm.means_[j,0],gmm.means_[j,1],
+                  U[0,0],U[1,0],scale = 5/major)
+        
+        #绘制短半轴向量
+        ax.quiver(gmm.means_[j,0],gmm.means_[j,1],
+                  U[0,1],U[1,1],scale = 5/minor)
+        
+        #绘制椭圆
+        for scale in np.array([3,2,1]):
+            ell = Ellipse(xy = gmm.means_[j,:2],
+                          width = scale*major,
+                          height = scale*minor,
+                          angle = angle,
+                          color = rgb[j,:],
+                          alpha = 0.18)
+            ax.add_artist(ell)
+            
 
+#协方差类型
+covariance_types = ['tied','spherical','diag','full']
 
+with st.sidebar:
+    st.title('GMM Clustering')
+    #定义kNN临近数量k
+    covariance_type = st.radio('covariance_type',
+                               covariance_types)
+    feat_x = st.slider('横轴特征索引' , 0,3,0,1)
+    feat_y = st.slider('纵轴特征索引' , 0,3,1,1)
+            
+#网格数据
+iris = datasets.load_iris()
+# 只取用户选的两列
+X_full = iris.data
+X = X_full[:, [feat_x, feat_y]]
+y = iris.target
 
+# 根据这两维的范围自动生成网格
+x1_min, x1_max = X[:,0].min() - .5, X[:,0].max() + .5
+x2_min, x2_max = X[:,1].min() - .5, X[:,1].max() + .5
+x1_array = np.linspace(x1_min, x1_max, 101)
+x2_array = np.linspace(x2_min, x2_max, 101)
+xx1, xx2 = np.meshgrid(x1_array, x2_array)
+
+    
+    
+K = 3
+
+rgb = [[255,51,0],
+       [0,153,255],
+       [138,138,138]]
+rgb = np.array(rgb)/255.
+cmap_bold = ListedColormap(rgb)
+
+#GMM聚类
+gmm = GaussianMixture(n_components = K,
+                      covariance_type = covariance_type)
+gmm.fit(X)
+Z = gmm.predict(np.c_[xx1.ravel(),xx2.ravel()])
+Z = Z.reshape(xx1.shape)
+
+#可视化
+fig = plt.figure(figsize = (10,5))
+ax = fig.add_subplot(1,2,1)
+ax.scatter(x=X[:,0],y = X[:,1],
+           color = np.array([0,68,138])/255.,
+           alpha = 1.0,
+           linewidth = 1,edgecolor = [1,1,1])
+#绘制椭圆和向量
+make_ellipses(gmm,ax)
+ax.set_xlim(4,8);ax.set_ylim(1,5)
+ax.set_xlabel(iris.feature_names[0])
+ax.set_ylabel(iris.feature_names[1])
+ax.grid(linestyle = '--',linewidth = 0.25,
+        color = [0.5,0.5,0.5])
+ax.set_aspect('equal',adjustable = 'box')
+
+ax = fig.add_subplot(1,2,2)
+ax.contourf(xx1,xx2,Z,cmap = cmap_bold,alpha = 0.18)
+ax.contour(xx1,xx2,Z,levels = [0,1,2],
+           #外层[]表示一个颜色的意思[[r,g,b]],如果不带[r,g,b]将表示三个颜色
+           colors = [np.array([0,68,138])/255.])
+ax.scatter(x = X[:,0],y = X[:,1],
+           color = np.array([0,68,138])/255.,
+            alpha = 1.0,
+            linewidth = 1,edgecolor = [1,1,1])
+centroids = gmm.means_
+ax.scatter(centroids[:,0],centroids[:,1],
+           marker = 'x',s = 100,linewidths = 1.5,
+           color = 'k')
+ax.set_xlim(4,8);ax.set_ylim(1,5)
+ax.set_xlabel(iris.feature_names[0])
+ax.set_ylabel(iris.feature_names[1])
+ax.grid(linestyle = '--',linewidth = 0.25,color = [0.5,0.5,0.5])
+ax.set_aspect('equal',adjustable = 'box')
+st.pyplot(fig)
 
 
 
