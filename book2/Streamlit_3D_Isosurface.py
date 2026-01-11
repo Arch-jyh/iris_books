@@ -25,7 +25,7 @@ def bmatrix(a):
             #转移解析属于字符串下
         #latex来自streamlit,因为需要渲染
     rv = [r'\begin{bmatrix}']
-    rv += ['   ' + ' & '.join(l.split()) + r'\\' for l in lines]#
+    rv += ['   ' + ' & '.join(l.split()) + r'\\' for l in lines]
     rv += [r'\end{bmatrix}']#
     return '\n'.join(rv)
 
